@@ -42,6 +42,11 @@ static void open_in_viewer(char* viewer_command, const char* text, size_t len) {
 
 static char* anthropic_parse_out(postresp_t* sockresp, size_t* len) {
     yyjson_doc* doc = yyjson_read(sockresp->body, sockresp->body_length, 0);
+    if (doc == NULL) {
+        *len = 0;
+        return NULL;
+    }
+
     yyjson_val* root = yyjson_doc_get_root(doc);
 
     yyjson_val* content_arr = yyjson_obj_get(root, "content");
@@ -98,30 +103,45 @@ char* claude_get(char* question) {
         system_prompt = (char*) default_system_prompt;
     }
 
-    char body[BODY_SIZE];
-    int32_t body_len = snprintf(body, BODY_SIZE,
-        "{"
-        "\"model\": \"claude-sonnet-4-20250514\","
-        "\"max_tokens\": 1024,"
-        "\"system\": \"%s\","
-        "\"messages\": [ {\"role\": \"user\", \"content\": \"%s\"} ]"
-        "}",
-        system_prompt,
-        question
-    );
+    yyjson_mut_doc* doc = yyjson_mut_doc_new(NULL);
+    yyjson_mut_val* root = yyjson_mut_obj(doc);
+    yyjson_mut_doc_set_root(doc, root);
 
-    if (body_len <= 0 || body_len >= (int32_t) BODY_SIZE) {
-        FATAL(API_FAIL_EC, "Body buffer is too small for Claude!\n");
+    yyjson_mut_obj_add_str(doc, root, "model", "claude-sonnet-4-20250514");
+    yyjson_mut_obj_add_int(doc, root, "max_tokens", 1024);
+    yyjson_mut_obj_add_str(doc, root, "system", system_prompt);
+
+    yyjson_mut_val* messages = yyjson_mut_arr(doc);
+    yyjson_mut_obj_add_val(doc, root, "messages", messages);
+
+    yyjson_mut_val* msg = yyjson_mut_obj(doc);
+    yyjson_mut_obj_add_str(doc, msg, "role", "user");
+    yyjson_mut_obj_add_str(doc, msg, "content", question);
+
+    yyjson_mut_arr_add_val(messages, msg);
+
+    size_t json_len;
+    char* json = yyjson_mut_write(doc, 0, &json_len);
+    if (json == NULL) {
+        yyjson_mut_doc_free(doc);
+        FATAL(API_FAIL_EC, "yyjson_mut_write() returned NULL!\n");
     }
 
     postresp_t resp = { 0 };
-    https_post(sockres, CLAUDE_HOST, CLAUDE_PATH, exhdrs, body, body_len, &resp);
+    https_post(sockres, CLAUDE_HOST, CLAUDE_PATH, exhdrs, json, json_len, &resp);
+
+    yyjson_mut_doc_free(doc);
+    free(json);
 
     size_t len = 0;
     char* text = anthropic_parse_out(&resp, &len);
     char* viewer_command = getenv("HOW_VIEWER_CMD");
     if (viewer_command == NULL) {
         viewer_command = (char*) default_viewer;
+    }
+
+    if (text == NULL) {
+        FATAL(API_FAIL_EC, "Failed to parse Anthropic response JSON!\n");
     }
     open_in_viewer(viewer_command, text, len);
 
