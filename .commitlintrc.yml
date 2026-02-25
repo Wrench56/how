@@ -24,6 +24,7 @@ rules:
       - license
       - tools
       - usage
+      - errors
   subject-empty:
     level: error
   type:
