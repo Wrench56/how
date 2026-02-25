@@ -28,6 +28,7 @@ rules:
       - https
       - keydb
       - api
+      - libs
   subject-empty:
     level: error
   type:
