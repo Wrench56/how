@@ -25,6 +25,7 @@ rules:
       - tools
       - usage
       - errors
+      - https
   subject-empty:
     level: error
   type:
