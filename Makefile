@@ -7,6 +7,11 @@ INC_DIR := include
 LIB_DIR := libs
 BUILD := build
 
+PREFIX ?= /usr/local
+BINDIR ?= $(PREFIX)/bin
+INSTALL ?= install
+INSTALL_BIN ?= $(INSTALL) -m 0755
+
 CFLAGS := -std=$(CSTD) -O2 -Wall -Wextra -Wpedantic -I$(INC_DIR) -I$(LIB_DIR)/yyjson
 LDFLAGS := -lssl -lcrypto
 
@@ -15,7 +20,7 @@ SRCS += $(LIB_DIR)/yyjson/yyjson.c
 
 OBJS := $(patsubst %.c,$(BUILD)/%.o,$(SRCS))
 
-.PHONY: all clean run format
+.PHONY: all clean run format install uninstall
 all: $(APP)
 
 $(APP): $(OBJS)
@@ -29,6 +34,15 @@ $(BUILD)/%.o: %.c
 
 run: $(APP)
 	@./$(APP)
+
+install: $(APP)
+	@printf "IN %s\n" "$(DESTDIR)$(BINDIR)/$(APP)"
+	@$(INSTALL) -d "$(DESTDIR)$(BINDIR)"
+	@$(INSTALL_BIN) "$(APP)" "$(DESTDIR)$(BINDIR)/$(APP)"
+
+uninstall:
+	@printf "UN %s\n" "$(DESTDIR)$(BINDIR)/$(APP)"
+	@rm -f "$(DESTDIR)$(BINDIR)/$(APP)"
 
 clean:
 	@rm -rf $(BUILD) $(APP)
