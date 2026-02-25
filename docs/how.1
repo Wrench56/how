@@ -1,0 +1,110 @@
+.TH HOW 1 "February 2026" "how" "User Commands"
+
+.SH NAME
+how \- ask technical questions from the shell using an LLM
+
+.SH SYNOPSIS
+.B how
+[\fIquestion\fR...]
+
+.SH DESCRIPTION
+.B how
+sends a question to a configured language model and renders
+the response as a manual page.
+
+If standard input is not attached to a TTY, its contents are
+appended to the question.
+
+The output is piped into a viewer command (default:
+.BR "man -l -" ).
+
+.SH ENVIRONMENT
+.TP
+.B CLAUDE_API_KEY
+API key used for Claude authentication.
+
+.TP
+.B HOW_VIEWER_CMD
+Command used to display output. The generated text is piped
+to this command.
+
+.TP
+.B HOW_SYSTEM_PROMPT
+Overrides the default system prompt used when generating
+responses.
+
+.SH EXIT STATUS
+.TP
+.B 0
+Success.
+
+.TP
+.B 1
+realloc() failure.
+
+.TP
+.B 2
+socket() failure.
+
+.TP
+.B 3
+Specified host not found.
+
+.TP
+.B 4
+SSL connect failure
+
+.TP
+.B 5
+malloc() failure.
+
+.TP
+.B 6
+SSL_send() failure.
+
+.TP
+.B 7
+SSL_recv() failure.
+
+.TP
+.B 8
+Key database retrieve failure.
+
+.TP
+.B 9
+General API failures.
+
+.TP
+.B 10
+Failure during stdio reading.
+
+.SH EXAMPLES
+Ask a question:
+
+.nf
+how how to fork in C
+.fi
+
+Multiline input:
+
+.nf
+how <<EOF
+Explain this program:
+int main() { return 0; }
+EOF
+.fi
+
+Pipe input:
+
+.nf
+cat file.c | how explain this code
+.fi
+
+.SH FILES
+None.
+
+.SH SEE ALSO
+man(1), less(1)
+
+.SH AUTHORS
+Mark Devenyi
