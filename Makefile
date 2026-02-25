@@ -6,8 +6,8 @@ SRC_DIR := src
 INC_DIR := include
 BUILD := build
 
-CFLAGS := -std=$(CSTD) -O2 -Wall -Wextra -Wpedantic -I$(INC_DIR) -g
-LDFLAGS :=
+CFLAGS := -std=$(CSTD) -O2 -Wall -Wextra -Wpedantic -I$(INC_DIR)
+LDFLAGS := -lssl
 
 SRCS := $(shell find $(SRC_DIR) -type f -name '*.c')
 OBJS := $(patsubst $(SRC_DIR)/%.c,$(BUILD)/%.o,$(SRCS))
