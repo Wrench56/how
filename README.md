@@ -44,9 +44,31 @@ You can modify the system prompt and response viewer. If one prefers plaintext o
 
 ### Examples
 
+#### Less as Viewer
+
 ```sh
 export HOW_VIEWER_CMD="less -R"
 ```
+
+#### Multiline
+
+```sh
+how <<EOF
+This allows you to input multiline text
+You can type until you type E O F without the spaces.
+Like below:
+EOF
+```
+
+`how` reads from stdin when it is not attached to a TTY.
+
+#### Wizardry with stdin
+
+```sh
+cat myfile.c | how does it do it?
+```
+
+When stdin is present, `how` will first submit your arguments then whatever is present in stdin.
 
 ## Security
 
