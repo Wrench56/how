@@ -29,6 +29,7 @@ rules:
       - keydb
       - api
       - libs
+      - assets
   subject-empty:
     level: error
   type:
