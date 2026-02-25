@@ -26,9 +26,8 @@ char* join_args(int32_t argc, char** argv) {
             heap_size = (heap_size == 0) ? HEAP_BASE_SIZE : heap_size * GROWTH_FACTOR;
             char* new_heap_base = (char*) realloc(heap_base, heap_size);
             if (new_heap_base == NULL) {
-                fprintf(stderr, "Error: Could not allocate %d bytes of memory!", (int) heap_size);
                 free(heap_base);
-                exit(REALLOC_FAIL_EC);
+                FATAL(REALLOC_FAIL_EC, "Error: Could not allocate %d bytes of memory!\n", (int) heap_size);
             }
 
             heap_base = new_heap_base;
