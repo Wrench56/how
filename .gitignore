@@ -1,0 +1,14 @@
+# Ignore CCLS cache
+.ccls-cache/
+
+# Ignore commitlint executable
+tools/commitlint*
+
+# Ignore .token
+.token
+
+# Ignore executable
+how
+
+# Ignore build directory
+build/

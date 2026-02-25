@@ -1,0 +1,3 @@
+# how - Neo-UNIX command for asking questions!
+
+Well, I guess I am writing LLM wrapper now...
