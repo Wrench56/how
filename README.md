@@ -1,6 +1,6 @@
 # how - Neo-UNIX command for asking questions!
 
-![ManpageExample](https://github.com/Wrench56/dotfiles/blob/main/assets/manpage-example.png?raw=true)
+![ManpageExample](https://github.com/Wrench56/how/blob/main/assets/manpage-example.png?raw=true)
 
 Well, I guess I am writing LLM wrappers now...
 
