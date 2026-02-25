@@ -16,7 +16,7 @@
 
 #define HTTPS_PORT 443
 #define REQUEST_SIZE 8196
-#define RESPONSE_SIZE 8196
+#define RESPONSE_SIZE 65536
 
 static void https_cleanup(sockres_t* sockres) {
     SSL_shutdown(sockres->ssl);
@@ -127,7 +127,7 @@ sockres_t* https_connect(char* host) {
     return sockres;
 }
 
-void https_post(sockres_t* sockres, const char* host, const char* path, char* extras, char* body, size_t body_len) {
+void https_post(sockres_t* sockres, const char* host, const char* path, char* extras, char* body, size_t body_len, postresp_t* postresp) {
     char req[REQUEST_SIZE];
     int32_t req_len = snprintf(req, sizeof(req),
         "POST /%s HTTP/1.1\r\n"
@@ -168,11 +168,17 @@ void https_post(sockres_t* sockres, const char* host, const char* path, char* ex
         written += n;
     }
 
-    char buf[RESPONSE_SIZE];
+    written = 0;
+    char resp[RESPONSE_SIZE];
     while (1) {
-        int32_t n = SSL_read(sockres->ssl, buf, (int32_t) sizeof(buf));
+        if (written + 1 >= RESPONSE_SIZE) {
+            https_cleanup(sockres);
+            FATAL(SSL_RECV_FAIL_EC, "Response too large for buffer!\n");
+        }
+
+        int32_t n = SSL_read(sockres->ssl, resp + written, (int32_t) RESPONSE_SIZE - written - 1);
         if (n > 0) {
-            fwrite(buf, 1, (size_t) n, stdout);
+            written += n;
             continue;
         } else if (n == 0) {
             break;
@@ -180,6 +186,36 @@ void https_post(sockres_t* sockres, const char* host, const char* path, char* ex
 
         https_ssl_fatal(sockres, n, SSL_RECV_FAIL_EC, "SSL_read() failed!");
     }
+    resp[written] = 0;
+
+    int32_t status = 0;
+    sscanf(resp, "HTTP/%*s %d", &status);
+    if (status < 200 || status > 299) {
+        FATAL(SSL_RECV_FAIL_EC, "POST returned response with status code: %d\n", status);
+    }
+
+    size_t content_len = 0;
+    char *p = strstr(resp, "Content-Length:");
+    if (!p || sscanf(p, "Content-Length: %lu", &content_len) != 1) {
+        FATAL(SSL_RECV_FAIL_EC, "No Content-Length\n");
+    }
+
+    char* body_start = strstr(resp, "\r\n\r\n");
+    if (body_start == NULL) {
+        https_cleanup(sockres);
+        FATAL(SSL_RECV_FAIL_EC, "Invalid HTTP response!\n");
+    }
+    body_start += 4;
+
+    char* out = malloc(content_len + 1);
+    if (out == NULL) {
+        https_cleanup(sockres);
+        FATAL(MALLOC_FAIL_EC, "malloc() failed when allocating buffer for HTTP POST response!\n");
+    }
+
+    memcpy(out, body_start, content_len);
 
     https_cleanup(sockres);
+    postresp->body = out;
+    postresp->body_length = content_len;
 }
