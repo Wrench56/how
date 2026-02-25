@@ -30,6 +30,7 @@ rules:
       - api
       - libs
       - assets
+      - manpage
   subject-empty:
     level: error
   type:
