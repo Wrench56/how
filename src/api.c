@@ -95,6 +95,7 @@ char* claude_get(char* question) {
     );
 
     if (hdr_len <= 0 || hdr_len >= (int32_t) HEADER_SIZE) {
+        free(sockres);
         FATAL(API_FAIL_EC, "Extra headers buffer is too small for Claude!\n");
     }
 
@@ -123,6 +124,7 @@ char* claude_get(char* question) {
     size_t json_len;
     char* json = yyjson_mut_write(doc, 0, &json_len);
     if (json == NULL) {
+        free(sockres);
         yyjson_mut_doc_free(doc);
         FATAL(API_FAIL_EC, "yyjson_mut_write() returned NULL!\n");
     }
@@ -132,6 +134,7 @@ char* claude_get(char* question) {
 
     yyjson_mut_doc_free(doc);
     free(json);
+    free(sockres);
 
     size_t len = 0;
     char* text = anthropic_parse_out(&resp, &len);
