@@ -11,6 +11,7 @@
 #define MALLOC_FAIL_EC 5
 #define SSL_SEND_FAIL_EC 6
 #define SSL_RECV_FAIL_EC 7
+#define KEYDB_RETRIEVE_FAIL_EC 8
 
 #define FATAL(error_code, ...) \
     fprintf(stderr, __VA_ARGS__); \
