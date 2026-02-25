@@ -13,6 +13,7 @@
 #define SSL_RECV_FAIL_EC 7
 #define KEYDB_RETRIEVE_FAIL_EC 8
 #define API_FAIL_EC 9
+#define IO_FAIL_EC 10
 
 #define FATAL(error_code, ...) \
     fprintf(stderr, __VA_ARGS__); \
