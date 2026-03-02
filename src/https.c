@@ -194,18 +194,19 @@ void https_post(sockres_t* sockres, const char* host, const char* path, char* ex
         FATAL(SSL_RECV_FAIL_EC, "POST returned response with status code: %d\n", status);
     }
 
-    size_t content_len = 0;
-    char *p = strstr(resp, "Content-Length:");
-    if (!p || sscanf(p, "Content-Length: %lu", &content_len) != 1) {
-        FATAL(SSL_RECV_FAIL_EC, "No Content-Length\n");
-    }
-
     char* body_start = strstr(resp, "\r\n\r\n");
     if (body_start == NULL) {
         https_cleanup(sockres);
         FATAL(SSL_RECV_FAIL_EC, "Invalid HTTP response!\n");
     }
     body_start += 4;
+
+    size_t content_len = 0;
+    int32_t content_length_sz = sscanf(body_start, "%lx", &content_len);
+    if (content_length_sz != 1) {
+        FATAL(SSL_RECV_FAIL_EC, "No Content-Length\n");
+    }
+    body_start += content_length_sz + 4;
 
     char* out = malloc(content_len + 1);
     if (out == NULL) {
